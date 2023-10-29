@@ -5,14 +5,11 @@ from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import time
-import os
 
-accessKeyId = os.environ.get("AWS_ACCESS_KEY_ID_S3")
-secretAccessKey = os.environ.get("AWS_SECRET_ACCESS_KEY_S3")
+accessKeyId='cagri'
+secretAccessKey='35413541'
 
-if accessKeyId is None or secretAccessKey is None:
-    raise ValueError("AWS access key or secret key not set in environment variables.")
-
+# create a SparkSession
 spark = SparkSession.builder \
 .appName("Project") \
 .master("local[2]") \
@@ -21,15 +18,20 @@ spark = SparkSession.builder \
 .config("fs.s3a.secret.key", secretAccessKey) \
 .config("fs.s3a.path.style.access", True) \
 .config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-.config("fs.s3a.endpoint", "s3.amazonaws.com") \
+.config("fs.s3a.endpoint", "http://minio:9000") \
 .getOrCreate()
 
 
 # EXTRACT
 
 df_movies = spark.read.parquet("s3a://tmdb-bronze/movies/")
+df_movies.show(5)
 
 df_movies = df_movies.withColumn("movie_id", col("id").cast(StringType()))
+
+df_movies.show(1)
+
+df_movies.printSchema()
 
 df_movies_movies = df_movies.select(
         col("movie_id"),
@@ -49,12 +51,12 @@ df_movies_movies = df_movies.select(
         col("vote_count").cast(IntegerType())
     )
 
+df_movies_movies.show(1)
+
 movies_genres_schema = ArrayType(StructType([
         StructField("id", IntegerType(), True),
         StructField("name", StringType(), True)
 ]))
-
-## TRANSFROM
 
 df_movies_genres = df_movies.withColumn("genres", from_json(col("genres"), movies_genres_schema))
 
@@ -64,6 +66,9 @@ df_movies_genres = df_movies_genres.select("movie_id", col("genres.*"))
 
 df_movies_genres = df_movies_genres.withColumn("id", when(col("id").isNull(), -9999)
                                              .otherwise(col("id")))
+
+df_movies_genres.show(5)
+df_movies_genres.printSchema()
 
 movies_keywords_schema = ArrayType(StructType([
         StructField("id", IntegerType(), True),
@@ -79,6 +84,9 @@ df_movies_keywords = df_movies_keywords.select("movie_id", col("keywords.*"))
 df_movies_keywords = df_movies_keywords.withColumn("id", when(col("id").isNull(), -9999)
                                              .otherwise(col("id")))
 
+df_movies_keywords.show(5)
+df_movies_keywords.printSchema()
+
 movies_production_companies_schema = ArrayType(StructType([
         StructField("id", IntegerType(), True),
         StructField("name", StringType(), True)  
@@ -92,6 +100,9 @@ df_movies_production_companies = df_movies_production_companies.select("movie_id
 
 df_movies_production_companies = df_movies_production_companies.withColumn("id", when(col("id").isNull(), -9999)
                                              .otherwise(col("id")))
+
+df_movies_production_companies.show(5)
+df_movies_production_companies.printSchema()
 
 movies_production_countries_schema = ArrayType(StructType([
         StructField("iso_3166_1", StringType(), True),
@@ -107,6 +118,8 @@ df_movies_production_countries = df_movies_production_countries.select("movie_id
 df_movies_production_countries = df_movies_production_countries.withColumn("iso_3166_1", when(col("iso_3166_1").isNull(), "XX")
                                              .otherwise(col("iso_3166_1")))
 
+df_movies_production_countries.show(5)
+df_movies_production_countries.printSchema()
 
 movies_spoken_languages_schema = ArrayType(StructType([
         StructField("iso_639_1", StringType(), True),
@@ -122,15 +135,17 @@ df_movie_spoken_languages = df_movie_spoken_languages.select("movie_id", col("sp
 df_movie_spoken_languages = df_movie_spoken_languages.withColumn("iso_639_1", when(col("iso_639_1").isNull(), "XX")
                                              .otherwise(col("iso_639_1")))
 
+df_movie_spoken_languages.show(5)
+df_movie_spoken_languages.printSchema()
 
 ## LOAD
 
 dataframes = [df_movies_movies, df_movies_genres, df_movies_keywords, 
-              df_movies_production_companies, df_movies_production_countries,
+              df_movies_production_companies, df_movies_production_countries, df_movies_production_countries, 
               df_movie_spoken_languages]
 
 table_folders = ["MoviesMovies", "MoviesGenres", "MoviesKeywords", 
-                  "MoviesProductionCompanies", "MoviesProductionCountries",
+                  "MoviesProductionCompanies", "MoviesProductionCountries", "MoviesProductionCountries",
                   "MovieSpokenLanguages"]
 
 for i, dataframe in enumerate(dataframes):

@@ -5,14 +5,11 @@ from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import time
-import os 
 
-accessKeyId = os.environ.get("AWS_ACCESS_KEY_ID_S3")
-secretAccessKey = os.environ.get("AWS_SECRET_ACCESS_KEY_S3")
+accessKeyId='cagri'
+secretAccessKey='35413541'
 
-if accessKeyId is None or secretAccessKey is None:
-    raise ValueError("AWS access key or secret key not set in environment variables.")
-
+# create a SparkSession
 spark = SparkSession.builder \
 .appName("Project") \
 .master("local[2]") \
@@ -21,13 +18,15 @@ spark = SparkSession.builder \
 .config("fs.s3a.secret.key", secretAccessKey) \
 .config("fs.s3a.path.style.access", True) \
 .config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-.config("fs.s3a.endpoint", "s3.amazonaws.com") \
+.config("fs.s3a.endpoint", "http://minio:9000") \
 .getOrCreate()
 
 
 ## EXTRACT
 
 df_credits = spark.read.parquet("s3a://tmdb-bronze/credits/")
+df_credits.show(5)
+
 
 ## TRANSFORM
 
@@ -56,6 +55,9 @@ df_credits_cast = df_credits_cast.select("movie_id", "title", col("cast.*"))
 df_credits_cast = df_credits_cast.withColumn("credit_id", when(col("credit_id").isNull(), 0000000000)
                                              .otherwise(col("credit_id")))
 
+df_credits_cast.show(5)
+df_credits_cast.printSchema()
+
 crew_schema = ArrayType(StructType([
         StructField("credit_id", StringType(), True),
         StructField("department", StringType(), True),
@@ -80,6 +82,11 @@ df_credits_crew = df_credits_crew.select("movie_id", "title", col("crew.*"))
 
 df_credits_crew = df_credits_crew.withColumn("credit_id", when(col("credit_id").isNull(), 0000000000)
                                              .otherwise(col("credit_id")))
+
+df_credits_crew.show(5)
+df_credits_crew.printSchema()
+
+
 
 ## LOAD
 
