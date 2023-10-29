@@ -35,13 +35,10 @@ spark = SparkSession.builder \
 # EXTRACT
 
 df_movies = spark.read.parquet("s3a://tmdb-bronze/movies/")
-df_movies.show(5)
+
 
 df_movies = df_movies.withColumn("movie_id", col("id").cast(StringType()))
 
-df_movies.show(1)
-
-df_movies.printSchema()
 
 df_movies_movies = df_movies.select(
         col("movie_id"),
@@ -61,7 +58,6 @@ df_movies_movies = df_movies.select(
         col("vote_count").cast(IntegerType())
     )
 
-df_movies_movies.show(1)
 
 movies_genres_schema = ArrayType(StructType([
         StructField("id", IntegerType(), True),
@@ -77,8 +73,6 @@ df_movies_genres = df_movies_genres.select("movie_id", col("genres.*"))
 df_movies_genres = df_movies_genres.withColumn("id", when(col("id").isNull(), -9999)
                                              .otherwise(col("id")))
 
-df_movies_genres.show(5)
-df_movies_genres.printSchema()
 
 movies_keywords_schema = ArrayType(StructType([
         StructField("id", IntegerType(), True),
@@ -94,8 +88,6 @@ df_movies_keywords = df_movies_keywords.select("movie_id", col("keywords.*"))
 df_movies_keywords = df_movies_keywords.withColumn("id", when(col("id").isNull(), -9999)
                                              .otherwise(col("id")))
 
-df_movies_keywords.show(5)
-df_movies_keywords.printSchema()
 
 movies_production_companies_schema = ArrayType(StructType([
         StructField("id", IntegerType(), True),
@@ -111,8 +103,6 @@ df_movies_production_companies = df_movies_production_companies.select("movie_id
 df_movies_production_companies = df_movies_production_companies.withColumn("id", when(col("id").isNull(), -9999)
                                              .otherwise(col("id")))
 
-df_movies_production_companies.show(5)
-df_movies_production_companies.printSchema()
 
 movies_production_countries_schema = ArrayType(StructType([
         StructField("iso_3166_1", StringType(), True),
@@ -128,8 +118,6 @@ df_movies_production_countries = df_movies_production_countries.select("movie_id
 df_movies_production_countries = df_movies_production_countries.withColumn("iso_3166_1", when(col("iso_3166_1").isNull(), "XX")
                                              .otherwise(col("iso_3166_1")))
 
-df_movies_production_countries.show(5)
-df_movies_production_countries.printSchema()
 
 movies_spoken_languages_schema = ArrayType(StructType([
         StructField("iso_639_1", StringType(), True),
@@ -145,8 +133,6 @@ df_movie_spoken_languages = df_movie_spoken_languages.select("movie_id", col("sp
 df_movie_spoken_languages = df_movie_spoken_languages.withColumn("iso_639_1", when(col("iso_639_1").isNull(), "XX")
                                              .otherwise(col("iso_639_1")))
 
-df_movie_spoken_languages.show(5)
-df_movie_spoken_languages.printSchema()
 
 ## LOAD
 

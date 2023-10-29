@@ -35,7 +35,6 @@ spark = SparkSession.builder \
 ## EXTRACT
 
 df_credits = spark.read.parquet("s3a://tmdb-bronze/credits/")
-df_credits.show(5)
 
 
 ## TRANSFORM
@@ -65,9 +64,6 @@ df_credits_cast = df_credits_cast.select("movie_id", "title", col("cast.*"))
 df_credits_cast = df_credits_cast.withColumn("credit_id", when(col("credit_id").isNull(), 0000000000)
                                              .otherwise(col("credit_id")))
 
-df_credits_cast.show(5)
-df_credits_cast.printSchema()
-
 crew_schema = ArrayType(StructType([
         StructField("credit_id", StringType(), True),
         StructField("department", StringType(), True),
@@ -93,12 +89,8 @@ df_credits_crew = df_credits_crew.select("movie_id", "title", col("crew.*"))
 df_credits_crew = df_credits_crew.withColumn("credit_id", when(col("credit_id").isNull(), 0000000000)
                                              .otherwise(col("credit_id")))
 
-df_credits_crew.show(5)
-df_credits_crew.printSchema()
-
-
-
 ## LOAD
+
 
 dataframes = [df_credits_cast, df_credits_crew]
 
