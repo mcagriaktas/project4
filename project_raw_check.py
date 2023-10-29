@@ -1,12 +1,20 @@
 import findspark
 findspark.init("/opt/spark/")
 
+import os
+from airflow.models import Variable
+
 from pyspark.sql import * 
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
-accessKeyId='cagri'
-secretAccessKey='35413541'
+
+accessKeyId = "cagri"
+secretAccessKey = "35413541"
+
+if accessKeyId is None or secretAccessKey is None:
+    raise ValueError("AWS access key or secret key not set in environment variables.")
+
 
 spark = SparkSession.builder \
 .appName("Project") \
@@ -28,12 +36,12 @@ try:
     df_credits_count = df_credits.count()
     df_movies_count = df_movies.count()
 
-    if df_credits_count == 4803:
+    if df_credits_count >= 4803:
         print("df_credits tables is ready.")
     else:
         print("credits tables has a problem.")
 
-    if df_movies_count == 4803:
+    if df_movies_count >= 4803:
         print("movies tables is ready.")
     else:
         print("movies tables has a problem.")

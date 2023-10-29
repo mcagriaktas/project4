@@ -9,6 +9,9 @@ import time
 accessKeyId='cagri'
 secretAccessKey='35413541'
 
+if accessKeyId is None or secretAccessKey is None:
+    raise ValueError("AWS access key or secret key not set in environment variables.")
+
 # create a SparkSession
 spark = SparkSession.builder \
 .appName("Project") \

@@ -1,1 +1,3 @@
 airflowenv
+config.env
+.gitignore
