@@ -1,11 +1,17 @@
 import minio
 import os 
+import argparse
 
-accessKeyId = "cagri"
-secretAccessKey = "35413541"
+# Minio
+ap = argparse.ArgumentParser()
 
-if accessKeyId is None or secretAccessKey is None:
-    raise ValueError("AWS access key or secret key not set in environment variables.")
+ap.add_argument("-aki", "--accessKeyId", required=True, type=str)
+ap.add_argument("-sak", "--secretAccessKey", required=True, type=str)
+
+args = vars(ap.parse_args())
+
+accessKeyId = args['accessKeyId']
+secretAccessKey = args['secretAccessKey']
 
 client = minio.Minio(endpoint="minio:9000", access_key=accessKeyId, secret_key=secretAccessKey, secure=False)
 

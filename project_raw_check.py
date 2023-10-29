@@ -1,19 +1,22 @@
 import findspark
 findspark.init("/opt/spark/")
 
-import os
-from airflow.models import Variable
+import argparse
 
 from pyspark.sql import * 
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
+# Minio
+ap = argparse.ArgumentParser()
 
-accessKeyId = "cagri"
-secretAccessKey = "35413541"
+ap.add_argument("-aki", "--accessKeyId", required=True, type=str)
+ap.add_argument("-sak", "--secretAccessKey", required=True, type=str)
 
-if accessKeyId is None or secretAccessKey is None:
-    raise ValueError("AWS access key or secret key not set in environment variables.")
+args = vars(ap.parse_args())
+
+accessKeyId = args['accessKeyId']
+secretAccessKey = args['secretAccessKey']
 
 
 spark = SparkSession.builder \
