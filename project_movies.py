@@ -141,11 +141,11 @@ df_movie_spoken_languages.printSchema()
 ## LOAD
 
 dataframes = [df_movies_movies, df_movies_genres, df_movies_keywords, 
-              df_movies_production_companies, df_movies_production_countries, df_movies_production_countries, 
+              df_movies_production_companies, df_movies_production_countries, 
               df_movie_spoken_languages]
 
 table_folders = ["MoviesMovies", "MoviesGenres", "MoviesKeywords", 
-                  "MoviesProductionCompanies", "MoviesProductionCountries", "MoviesProductionCountries",
+                  "MoviesProductionCompanies", "MoviesProductionCountries",
                   "MovieSpokenLanguages"]
 
 for i, dataframe in enumerate(dataframes):

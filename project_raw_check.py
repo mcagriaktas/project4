@@ -1,13 +1,9 @@
-from genericpath import isdir
-from os import error
 import findspark
 findspark.init("/opt/spark/")
 
 from pyspark.sql import * 
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-import time
-import os.path
 
 accessKeyId='cagri'
 secretAccessKey='35413541'
@@ -23,27 +19,32 @@ spark = SparkSession.builder \
 .config("fs.s3a.endpoint", "http://minio:9000") \
 .getOrCreate()
 
-# Checking 
+# Checking
 
-df_credits = spark.read.parquet("s3a://tmdb-bronze/credits/")
-df_movies = spark.read.parquet("s3a://tmdb-bronze/movies/")
+try:
+    df_credits = spark.read.parquet("s3a://tmdb-bronze/credits/")
+    df_movies = spark.read.parquet("s3a://tmdb-bronze/movies/")
 
-df_credits_count = df_credits.count()
-df_movies_count = df_movies.count()
+    df_credits_count = df_credits.count()
+    df_movies_count = df_movies.count()
+
+    if df_credits_count == 4803:
+        print("df_credits tables is ready.")
+    else:
+        print("credits tables has a problem.")
+
+    if df_movies_count == 4803:
+        print("movies tables is ready.")
+    else:
+        print("movies tables has a problem.")
+
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
+    raise e
+finally:
+    spark.stop()
 
 
-if df_credits_count == 4803:
-    print("df_credits table is ready.")
-else:
-    print("Table has problem.")
-
-if df_movies_count == 4803:
-    print("df_movies table is ready.")
-else:
-    print("Table has problem.")
 
 
-
-
-spark.stop()
 
