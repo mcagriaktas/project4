@@ -11,15 +11,15 @@ import time
 # Minio
 ap = argparse.ArgumentParser()
 
-ap.add_argument("-aki", "--accessKeyId", required=True, type=str)
-ap.add_argument("-sak", "--secretAccessKey", required=True, type=str)
+ap.add_argument("-aki", "--accessKeyIds3", required=True, type=str)
+ap.add_argument("-sak", "--secretAccessKeys3", required=True, type=str)
 
 args = vars(ap.parse_args())
 
-accessKeyId = args['accessKeyId']
-secretAccessKey = args['secretAccessKey']
+accessKeyId = args['accessKeyIds3']
+secretAccessKey = args['secretAccessKeys3']
 
-# create a SparkSession
+
 spark = SparkSession.builder \
 .appName("Project") \
 .master("local[2]") \
@@ -28,15 +28,15 @@ spark = SparkSession.builder \
 .config("fs.s3a.secret.key", secretAccessKey) \
 .config("fs.s3a.path.style.access", True) \
 .config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-.config("fs.s3a.endpoint", "http://minio:9000") \
+.config("fs.s3a.endpoint", "s3.amazonaws.com") \
 .getOrCreate()
-
-
+# s3.amazonaws.com
+# http://minio:9000
 ## EXTRACT
 
 df_credits = spark.read.parquet("s3a://tmdb-bronze/credits/")
 
-
+df_credits.show(5)
 ## TRANSFORM
 
 cast_schema = ArrayType(StructType([
@@ -88,7 +88,7 @@ df_credits_crew = df_credits_crew.select("movie_id", "title", col("crew.*"))
 
 df_credits_crew = df_credits_crew.withColumn("credit_id", when(col("credit_id").isNull(), 0000000000)
                                              .otherwise(col("credit_id")))
-
+df_credits_cast.show(1)
 ## LOAD
 
 
@@ -99,6 +99,6 @@ table_folders = ["CreditsCast", "CreditsCrew"]
 for i, dataframe in enumerate(dataframes):
     time.sleep(5)
     table_folder_name = table_folders[i]
-    dataframe.write.format("delta").mode("overwrite").save(f"s3a://tmdb-silver/{table_folder_name}")
+    dataframe.write.format("parquet").mode("overwrite").save(f"s3a://tmdb-silver/{table_folder_name}")
 
 spark.stop()
