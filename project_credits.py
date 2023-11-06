@@ -94,7 +94,7 @@ df_credits_crew.show(1)
 
 dataframes = [df_credits_cast, df_credits_crew]
 
-table_folders = ["CreditsCast", "CreditsCrew"]
+table_folders = ["cast", "crew"]
 
 for i, dataframe in enumerate(dataframes):
     time.sleep(5)

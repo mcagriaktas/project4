@@ -1,19 +1,18 @@
+from datetime import date
 from typing import Optional
 from sqlmodel import Field, SQLModel
 from sqlmodel import create_engine
 import pandas as pd
-
 import time 
-import findspark
-findspark.init("/opt/spark/")
-
 import argparse
 
+import findspark
+findspark.init("/opt/spark/")
 from pyspark.sql import * 
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
-"""
+
 # Minio
 ap = argparse.ArgumentParser()
 
@@ -22,11 +21,9 @@ ap.add_argument("-sak", "--secretAccessKey", required=True, type=str)
 
 args = vars(ap.parse_args())
 
-accessKeyId = args["accessKeyId"]
-secretAccessKey = args["secretAccessKey"]
-"""
-accessKeyId = "cagri"
-secretAccessKey = "35413541"
+accessKeyId = args['accessKeyId']
+secretAccessKey = args['secretAccessKey']
+
 
 spark = SparkSession.builder \
 .appName("Project") \
@@ -39,21 +36,23 @@ spark = SparkSession.builder \
 .config("fs.s3a.endpoint", "http://minio:9000") \
 .getOrCreate()
 
-class creditscast(SQLModel, table=True):
+
+# DB table Schema
+class cast(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    movie_id = int
-    title = str
-    cast_id = int
-    character = str
-    credit_id = str
-    gender = int
-    name = str
+    movie_id: str
+    title: str
+    cast_id: int
+    character: str
+    credit_id: str
+    gender: int
+    name: str
           
-class creditscrew(SQLModel, table=True):
+class crew(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    movie_id = int
+    movie_id = str
     title = str
     credit_id = str
     department = str
@@ -61,12 +60,53 @@ class creditscrew(SQLModel, table=True):
     job = str
     name = str
 
+class movies(SQLModel, table=True):
 
-# database : mydb
-# user: cagri
-# password: 35413511
-# ip: 127.0.0.1
-# port: 5432
+    movie_id: str = Field(default=None, primary_key=True)
+    title: str
+    budget: float
+    homepage: str
+    original_language: str
+    original_title: str
+    overview: str
+    popularity: float
+    release_date: date
+    revenue: float
+    runtime: int
+    status: str
+    tagline: str
+    vote_average: float
+    vote_count: int
+
+class genres(SQLModel, table=True):
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    movie_id: str
+    name: str
+
+class keywords(SQLModel, table=True):
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    movie_id: str
+    name: str
+
+class production_companies(SQLModel, table=True):
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    movie_id: str
+    name: str
+
+class production_countries(SQLModel, table=True):
+
+    movie_id: Optional[str] = Field(default=None, primary_key=True)
+    iso_3166_1: str
+    name: str
+
+class spoken_languages(SQLModel, table=True):
+
+    movie_id: Optional[str] = Field(default=None, primary_key=True)
+    iso_639_1: str
+    name: str
 
 SQLALCHEMY_DATABASE_URL="postgresql://cagri:35413541@postgres:5432/mydb"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
@@ -76,16 +116,24 @@ def create_db_and_tables():
 
 create_db_and_tables()
 
-df_CreditsCast = spark.read.format("delta").load("s3a://tmdb-silver/CreditsCast/")
-time.sleep(5)
-df_CreditsCrew = spark.read.format("delta").load("s3a://tmdb-silver/CreditsCrew/")
+table_folders_credits = ["cast", "crew"]
 
-pandas_df_credits_cast = df_CreditsCast.toPandas()
-pandas_df_credits_crew = df_CreditsCrew.toPandas()
 
-pandas_df_credits_cast.to_sql('creditscast', con=engine, if_exists='replace', index=False)
+for table in table_folders_credits:
+    dataframe = spark.read.format("delta").load(f"s3a://tmdb-silver/{table}/")
+    dataframe = dataframe.toPandas()
+    dataframe.to_sql(f"{table}", con=engine, if_exists='replace', index=False)
+
 time.sleep(5)
-pandas_df_credits_crew.to_sql('creditscrew', con=engine, if_exists='replace', index=False)
+
+table_folders_movies = ["movies", "genres", "keywords", 
+                  "production_companies", "production_countries",
+                  "spoken_languages"]
+
+for table in table_folders_movies:
+    dataframe = spark.read.format("delta").load(f"s3a://tmdb-silver/{table}/")
+    dataframe = dataframe.toPandas()
+    dataframe.to_sql(f"{table}", con=engine, if_exists='replace', index=False)
 
 spark.stop()
 

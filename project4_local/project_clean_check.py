@@ -1,5 +1,7 @@
-import minio
+import minio 
 import argparse
+from minio.error import S3Error
+
 
 # Minio
 ap = argparse.ArgumentParser()
@@ -14,17 +16,31 @@ secretAccessKey = args['secretAccessKey']
 
 client = minio.Minio(endpoint="minio:9000", access_key=accessKeyId, secret_key=secretAccessKey, secure=False)
 
-def count_minio_bucket_objects(bucket_name):
-    objects = client.list_objects(bucket_name)
-    object_count = len(list(objects))
-    return object_count
+
+def check_folder_exists(bucket_name, folder_name):
+    try:
+        objects = client.list_objects(bucket_name, prefix=folder_name, recursive=True)
+
+        for obj in objects:
+            return True
+
+    except S3Error as e:
+        print("Error: ", e)
+        pass
+
+    return False
 
 bucket_name = "tmdb-silver"
+folder_silver = ["cast", "crew", "movies", "genres", "keywords", 
+                  "production_companies", "production_countries",
+                  "spoken_languages"]
 
-object_count = count_minio_bucket_objects(bucket_name)
-
-if object_count == 8:
-    print("Your tables are ready.")
+if all(check_folder_exists(bucket_name, folder_name) for folder_name in folder_silver):
+    print("Eight folders exist in the bucket.")
 else:
-    print("Your tables are not ready. Object count:", object_count)
+    print("One or more folders do not exist in the bucket.")
+
+
+
+
 

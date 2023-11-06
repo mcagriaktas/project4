@@ -1,13 +1,8 @@
-import findspark
-findspark.init("/opt/spark/")
-
+import minio 
 import argparse
+from minio.error import S3Error
 
-from pyspark.sql import * 
-from pyspark.sql.functions import *
-from pyspark.sql.types import *
 
-"""
 # Minio
 ap = argparse.ArgumentParser()
 
@@ -16,50 +11,32 @@ ap.add_argument("-sak", "--secretAccessKey", required=True, type=str)
 
 args = vars(ap.parse_args())
 
-accessKeyId = args["accessKeyId"]
-secretAccessKey = args["secretAccessKey"]
-"""
-accessKeyId = "cagri"
-secretAccessKey = "35413541"
+accessKeyId = args['accessKeyId']
+secretAccessKey = args['secretAccessKey']
 
 
-spark = SparkSession.builder \
-.appName("Project") \
-.master("local[2]") \
-.config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.2.0,io.delta:delta-core_2.12:2.4.0") \
-.config("fs.s3a.access.key", accessKeyId) \
-.config("fs.s3a.secret.key", secretAccessKey) \
-.config("fs.s3a.path.style.access", True) \
-.config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-.config("fs.s3a.endpoint", "http://minio:9000") \
-.getOrCreate()
-
-# Checking
-
-try:
-    df_credits = spark.read.parquet("s3a://tmdb-bronze/credits/")
-    df_movies = spark.read.parquet("s3a://tmdb-bronze/movies/")
-
-    df_credits_count = df_credits.count()
-    df_movies_count = df_movies.count()
-
-    if df_credits_count >= 4803:
-        print("df_credits tables is ready.")
-    else:
-        print("credits tables has a problem.")
-
-    if df_movies_count >= 4803:
-        print("movies tables is ready.")
-    else:
-        print("movies tables has a problem.")
-
-except Exception as e:
-    print(f"An error occurred: {str(e)}")
-    raise e
-finally:
-    spark.stop()
+client = minio.Minio(endpoint="minio:9000", access_key=accessKeyId, secret_key=secretAccessKey, secure=False)
 
 
+def check_folder_exists(bucket_name, folder_name):
+    try:
+        objects = client.list_objects(bucket_name, prefix=folder_name, recursive=True)
 
+        for obj in objects:
+            return True
+
+    except S3Error as e:
+        print("Error: ", e)
+        pass
+
+    return False
+
+bucket_name = "tmdb-bronze"
+folder_bronze = ["credits", "movies"]
+
+if all(check_folder_exists(bucket_name, folder_name) for folder_name in folder_bronze):
+    print("Two folders exist in the bucket.")
+else:
+    print("One or more folders do not exist in the bucket.")
 
 

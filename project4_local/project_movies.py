@@ -8,7 +8,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import time
 
-"""
+
 # Minio
 ap = argparse.ArgumentParser()
 
@@ -19,9 +19,6 @@ args = vars(ap.parse_args())
 
 accessKeyId = args["accessKeyId"]
 secretAccessKey = args["secretAccessKey"]
-"""
-accessKeyId = "cagri"
-secretAccessKey = "35413541"
 
 
 spark = SparkSession.builder \
@@ -43,7 +40,6 @@ df_movies = spark.read.parquet("s3a://tmdb-bronze/movies/")
 df_movies.show(5)
 
 df_movies = df_movies.withColumn("movie_id", col("id").cast(StringType()))
-
 
 df_movies_movies = df_movies.select(
         col("movie_id"),
@@ -147,9 +143,9 @@ dataframes = [df_movies_movies, df_movies_genres, df_movies_keywords,
               df_movies_production_companies, df_movies_production_countries, 
               df_movie_spoken_languages]
 
-table_folders = ["MoviesMovies", "MoviesGenres", "MoviesKeywords", 
-                  "MoviesProductionCompanies", "MoviesProductionCountries",
-                  "MovieSpokenLanguages"]
+table_folders = ["movies", "genres", "keywords", 
+                  "production_companies", "production_countries",
+                  "spoken_languages"]
 
 for i, dataframe in enumerate(dataframes):
     time.sleep(5)

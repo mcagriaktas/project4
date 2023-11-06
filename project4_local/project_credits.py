@@ -7,7 +7,7 @@ from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import time
-"""
+
 # Minio
 ap = argparse.ArgumentParser()
 
@@ -18,9 +18,7 @@ args = vars(ap.parse_args())
 
 accessKeyId = args["accessKeyId"]
 secretAccessKey = args["secretAccessKey"]
-"""
-accessKeyId = "cagri"
-secretAccessKey = "35413541"
+
 
 spark = SparkSession.builder \
 .appName("Project") \
@@ -100,7 +98,7 @@ df_credits_crew.show(10)
 
 dataframes = [df_credits_cast, df_credits_crew]
 
-table_folders = ["CreditsCast", "CreditsCrew"]
+table_folders = ["cast", "crew"]
 
 for i, dataframe in enumerate(dataframes):
     time.sleep(5)

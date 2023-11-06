@@ -143,9 +143,9 @@ dataframes = [df_movies_movies, df_movies_genres, df_movies_keywords,
               df_movies_production_companies, df_movies_production_countries, 
               df_movie_spoken_languages]
 
-table_folders = ["MoviesMovies", "MoviesGenres", "MoviesKeywords", 
-                  "MoviesProductionCompanies", "MoviesProductionCountries",
-                  "MovieSpokenLanguages"]
+table_folders = ["movies", "genres", "keywords",
+                  "production_companies", "production_countries",
+                  "spoken_languages"]
 
 for i, dataframe in enumerate(dataframes):
     time.sleep(5)
