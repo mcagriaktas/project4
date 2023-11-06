@@ -8,16 +8,20 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import time
 
+"""
 # Minio
 ap = argparse.ArgumentParser()
 
-ap.add_argument("-aki", "--accessKeyIds3", required=True, type=str)
-ap.add_argument("-sak", "--secretAccessKeys3", required=True, type=str)
+ap.add_argument("-aki", "--accessKeyId", required=True, type=str)
+ap.add_argument("-sak", "--secretAccessKey", required=True, type=str)
 
 args = vars(ap.parse_args())
 
-accessKeyId = args['accessKeyIds3']
-secretAccessKey = args['secretAccessKeys3']
+accessKeyId = args["accessKeyId"]
+secretAccessKey = args["secretAccessKey"]
+"""
+accessKeyId = "cagri"
+secretAccessKey = "35413541"
 
 
 spark = SparkSession.builder \
@@ -28,7 +32,7 @@ spark = SparkSession.builder \
 .config("fs.s3a.secret.key", secretAccessKey) \
 .config("fs.s3a.path.style.access", True) \
 .config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-.config("fs.s3a.endpoint", "s3.amazonaws.com") \
+.config("fs.s3a.endpoint", "http://minio:9000") \
 .getOrCreate()
 
 

@@ -7,18 +7,20 @@ from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import time
-
+"""
 # Minio
 ap = argparse.ArgumentParser()
 
-ap.add_argument("-aki", "--accessKeyIds3", required=True, type=str)
-ap.add_argument("-sak", "--secretAccessKeys3", required=True, type=str)
+ap.add_argument("-aki", "--accessKeyId", required=True, type=str)
+ap.add_argument("-sak", "--secretAccessKey", required=True, type=str)
 
 args = vars(ap.parse_args())
 
-accessKeyId = args['accessKeyIds3']
-secretAccessKey = args['secretAccessKeys3']
-
+accessKeyId = args["accessKeyId"]
+secretAccessKey = args["secretAccessKey"]
+"""
+accessKeyId = "cagri"
+secretAccessKey = "35413541"
 
 spark = SparkSession.builder \
 .appName("Project") \
@@ -28,15 +30,16 @@ spark = SparkSession.builder \
 .config("fs.s3a.secret.key", secretAccessKey) \
 .config("fs.s3a.path.style.access", True) \
 .config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-.config("fs.s3a.endpoint", "s3.amazonaws.com") \
+.config("fs.s3a.endpoint", "http://minio:9000") \
 .getOrCreate()
 # s3.amazonaws.com
 # http://minio:9000
+
 ## EXTRACT
 
 df_credits = spark.read.parquet("s3a://tmdb-bronze/credits/")
 
-df_credits.show(5)
+df_credits.show(10)
 ## TRANSFORM
 
 cast_schema = ArrayType(StructType([
@@ -64,6 +67,8 @@ df_credits_cast = df_credits_cast.select("movie_id", "title", col("cast.*"))
 df_credits_cast = df_credits_cast.withColumn("credit_id", when(col("credit_id").isNull(), 0000000000)
                                              .otherwise(col("credit_id")))
 
+df_credits_cast.show(10)
+
 crew_schema = ArrayType(StructType([
         StructField("credit_id", StringType(), True),
         StructField("department", StringType(), True),
@@ -88,7 +93,8 @@ df_credits_crew = df_credits_crew.select("movie_id", "title", col("crew.*"))
 
 df_credits_crew = df_credits_crew.withColumn("credit_id", when(col("credit_id").isNull(), 0000000000)
                                              .otherwise(col("credit_id")))
-df_credits_crew.show(1)
+
+df_credits_crew.show(10)
 ## LOAD
 
 
