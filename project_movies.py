@@ -150,6 +150,6 @@ table_folders = ["movies", "genres", "keywords",
 for i, dataframe in enumerate(dataframes):
     time.sleep(5)
     table_folder_name = table_folders[i]
-    dataframe.write.format("delta").mode("overwrite").save(f"s3a://tmdb-silver/{table_folder_name}")
+    dataframe.write.format("parquet").mode("overwrite").save(f"s3a://tmdb-silver/{table_folder_name}")
 
 spark.stop()
